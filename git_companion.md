@@ -130,3 +130,64 @@ git push -u origin master    #将当前分支推送到远程，-u会将本地mas
 git push origin master
 ~~~
 
+### 5.2 克隆远程库
+
+对远程库进行克隆到本地
+
+~~~
+git clone git@githun.com:dumpling-eric/testgit.git
+~~~
+
+补充：
+
+Windows下的一些指令
+
+~~~
+type readme.txt    #查看文件内容
+dir    #相当于Linux中的ls
+~~~
+
+## 6 分支管理
+
+​	创建一个只属于自己的分支，随时提交随时更改。
+
+### 6.1 创建合并分支
+
+在原本的主分支中，master指向最后提交的内容，HEAD指向master，每次提交就相当于master向前移动。创建一个分支就是新建一个dev，并且HEAD是指向dev，此时提交文件dev向前移动，而master原地不动。
+
+~~~
+git checkout -b dev    #新建并切换到dev指针
+git branch    #查看当前分支，当前分支前有一个“*”
+git add readme.txt
+git commit -m "branch test"    #提交后master上并不会显示
+git checkout master    #切换回master
+~~~
+
+将dev与master合并，删除dev分支
+
+~~~
+git merge dev    #合并分支
+git branch -d dev    #删除分支
+~~~
+
+合并时使用的是fast forward模式，直接将master移动到dev处
+
+### 6.2 解决冲突
+
+假设新建一个分支dev并在该分支上提交了文件，后返回到分支master上也提交了修改文件，此时两个分支合并就会发生问题，只能手动解除冲突。
+
+~~~
+type readme.txt    #查看文件会显示两个分支上的内容
+git log --graph --pretty=oneline --abbrev-commit    #查看分支的合并情况
+~~~
+
+### 6.3 分支管理
+
+fast forward模式在删除分支后就会丢失分支信息，所以一般使用普通模式
+
+~~~
+git merge --no-ff -m "merge with no-ff" dev
+~~~
+
+no-ff表示禁用，-m后是说明commit的说明，所以普通模式就是master向前移动一位，同时dev也指向那个位置。普通模式是实际开发中常用的，在实际开发中master不轻易更改，先建一个dev分支，然后每个人新建属于自己的分支，合并内容时将自己的分支和dev分支合并，最后确定后再将dev和master合并。
+
