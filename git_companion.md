@@ -167,7 +167,8 @@ git checkout master    #切换回master
 
 ~~~
 git merge dev    #合并分支
-git branch -d dev    #删除分支
+git branch -d dev    #删除分支，如果没有合并则会报错不能删除
+git branch -D dev    #强行删除分支
 ~~~
 
 合并时使用的是fast forward模式，直接将master移动到dev处
@@ -190,4 +191,99 @@ git merge --no-ff -m "merge with no-ff" dev
 ~~~
 
 no-ff表示禁用，-m后是说明commit的说明，所以普通模式就是master向前移动一位，同时dev也指向那个位置。普通模式是实际开发中常用的，在实际开发中master不轻易更改，先建一个dev分支，然后每个人新建属于自己的分支，合并内容时将自己的分支和dev分支合并，最后确定后再将dev和master合并。
+
+### 6.4 bug分支
+
+假设一个场景，目前处于dev分支上，并且文件还不能提交，这个时候master分支上有一个bug必须马上处理，所以需要将dev分支存储起来，等处理好了bug之后再恢复，这就利用的Git里面的stash功能。
+
+~~~
+git stash    #将dev分支存储起来，接着查看status是干净的
+git checkout master
+git checkout -b bug-1
+git add readme.txt
+git commit -m "..."    #处理完bug
+git checkout master
+git merge --no-ff -m "..." bug-1
+git branch -d bug-1    #合并到master分支上
+~~~
+
+之后开始恢复dev分支
+
+~~~
+git checkout dev
+git stash list    #查看储存的分支
+git stash pop    #恢复最近储存的分支并删除
+git stash apply stash@{0}    #恢复最近储存的分支
+git stash drop atash@{0}    #删除最近储存的分支
+~~~
+
+### 6.5 多人协作
+
+对于远程仓库可以查看
+
+~~~
+git remote -v
+~~~
+
+**推送分支**是也可以任意选择：master分支是主分支，时刻保持同步；dev分支是开发分支，所以小伙伴都在上面工作；bug分支是修复本地bug，没有必要推送到远程；feature分支根据具体情况推送。
+
+~~~
+git push origin dev
+~~~
+
+假设一个小伙伴要在dev分支上工作，可是在默认情况下只能查看远程库的master分支，此时他就必须在本地创建和远程origin/dev分支相对应的分支
+
+~~~
+git checkout -b dev origin/dev
+~~~
+
+当你和小伙伴都在dev分支上推送相同文件，那么会报错，解决方式是先将本地的dev和远程origin/dev分支链接起来，这样才可以将最新的提交从origin/dev上抓取下来，在本地完成合并上再推送
+
+~~~
+git branch --set-upstream-to=origin/dev dev
+git pull    #抓取最新的提交，方便在本地进行合并
+~~~
+
+总而言之，多人协作的工作模式如下：
+
+首先，推送自己的修改git push origin branch-name；
+
+推送失败时，表明有小伙伴已经推送了相同的文件，此时git pull抓取最新的提交文件；
+
+如果抓取不了，显示no trackiing information则说明本地分支和远程分支没有链接，使用git branch --set-upstream-to branch-name origin/branch-name;
+
+抓取下来在本地解决冲突，最后git push origin branch-name。
+
+## 7 标签管理
+
+标签类似于快照，可以保存某个时刻的版本库
+
+~~~
+git checkout master    #切换到需要打标签的分支上
+git tag v1.0
+git tag    #查看标签
+
+git tag v0.9 e5e5533    #给特定的commit_id打标签
+git tag -a tagname -m "..."    #给标签附上说明
+~~~
+
+本地标签可以删除
+
+~~~
+git tag -d v0.9
+~~~
+
+标签可以推送到远程并且也可以删除
+
+~~~
+git push origin v1.0    #推送一个标签
+git push origin --tag    #推送全部标签
+
+git tag -d v1.0    #删除本地标签
+git push origin :refs/tags/v1.0    #删除远程标签（先删除本地标签再删除远程标签）
+~~~
+
+## 8 码云和搭建git服务器
+
+待补充，目前用不到
 
